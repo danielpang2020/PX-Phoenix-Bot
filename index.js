@@ -11,10 +11,12 @@ const client = new Client({
     GatewayIntentBits.GuildMessageReactions,
     GatewayIntentBits.GuildMembers,
   ],
+  partials: ["MESSAGE", "CHANNEL", "REACTION"], // important
 });
 
-// ===== Commands Setup =====
 client.commands = new Collection();
+
+// ===== Commands Setup =====
 const commandsPath = path.join(__dirname, "commands");
 const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith(".js"));
 
@@ -50,10 +52,28 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// ===== Bot Login =====
-const TOKEN = process.env.TOKEN;
-client.once("ready", () => {
+// ===== Bot Login & Ready =====
+client.once("clientReady", async () => {
   console.log(`Logged in as ${client.user.tag}`);
+
+  // Load reaction roles message on startup
+  let config;
+  try {
+    config = JSON.parse(fs.readFileSync("./reactionMessage.json"));
+  } catch {
+    console.warn("No reactionMessage.json found");
+    return;
+  }
+
+  if (!config || !config.id) return;
+
+  try {
+    const channel = await client.channels.fetch("1353372278640869416"); // reaction roles channel
+    const message = await channel.messages.fetch(config.id);
+    console.log(`Fetched reaction roles message ${message.id} successfully!`);
+  } catch (err) {
+    console.error("Failed to fetch reaction roles message:", err);
+  }
 });
 
-client.login(TOKEN);
+client.login(process.env.TOKEN);

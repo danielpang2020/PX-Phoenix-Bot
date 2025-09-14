@@ -1,4 +1,8 @@
-const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  PermissionFlagsBits,
+  EmbedBuilder,
+} = require("discord.js");
 
 const CHANNEL_LOGS = "1414272406742110208"; // Logs channel
 const cooldowns = new Map(); // Store cooldowns
@@ -6,18 +10,20 @@ const cooldowns = new Map(); // Store cooldowns
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("purge")
-    .setDescription("Delete a number of messages, optionally from a specific user.")
-    .addIntegerOption(option =>
+    .setDescription(
+      "Delete a number of messages, optionally from a specific user.",
+    )
+    .addIntegerOption((option) =>
       option
         .setName("messages")
         .setDescription("Number of messages to delete (max 100).")
-        .setRequired(true)
+        .setRequired(true),
     )
-    .addUserOption(option =>
+    .addUserOption((option) =>
       option
         .setName("user")
         .setDescription("Delete messages only from this user.")
-        .setRequired(false)
+        .setRequired(false),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages), // requires Manage Messages
 
@@ -28,16 +34,20 @@ module.exports = {
     const lastUsed = cooldowns.get(userId);
     if (lastUsed && Date.now() - lastUsed < 3000) {
       return interaction.reply({
-        content: "<:no:1414271943900659792> You are on cooldown! Please wait 3 seconds before using /purge again.",
+        content:
+          "<:no:1415646565623927007> You are on cooldown! Please wait 3 seconds before using /purge again.",
         ephemeral: true,
       });
     }
     cooldowns.set(userId, Date.now());
 
     // Check permissions
-    if (!interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)) {
+    if (
+      !interaction.member.permissions.has(PermissionFlagsBits.ManageMessages)
+    ) {
       return interaction.reply({
-        content: "<:no:1414271943900659792> You do not have permission to run this command.",
+        content:
+          "<:no:1415646565623927007> You do not have permission to run this command.",
         ephemeral: true,
       });
     }
@@ -47,7 +57,8 @@ module.exports = {
 
     if (amount < 1 || amount > 100) {
       return interaction.reply({
-        content: "<:no:1414271943900659792> You must provide a number between 1 and 100.",
+        content:
+          "<:no:1415646565623927007> You must provide a number between 1 and 100.",
         ephemeral: true,
       });
     }
@@ -56,14 +67,14 @@ module.exports = {
     let messages = await channel.messages.fetch({ limit: 100 });
 
     if (user) {
-      messages = messages.filter(m => m.author.id === user.id).first(amount);
+      messages = messages.filter((m) => m.author.id === user.id).first(amount);
     } else {
       messages = messages.first(amount);
     }
 
     if (!messages.length) {
       return interaction.reply({
-        content: `<:no:1414271943900659792> No messages found to delete.`,
+        content: `<:no:1415646565623927007> No messages found to delete.`,
         ephemeral: true,
       });
     }
@@ -77,7 +88,8 @@ module.exports = {
       failed = deletedCount < messages.length; // some too old
     } catch (err) {
       return interaction.reply({
-        content: "<:no:1414271943900659792> Failed to delete messages. Remember, I cannot delete messages older than 14 days.",
+        content:
+          "<:no:1415646565623927007> Failed to delete messages. Remember, I cannot delete messages older than 14 days.",
         ephemeral: true,
       });
     }
@@ -85,9 +97,9 @@ module.exports = {
     // success message
     let replyMessage;
     if (failed) {
-      replyMessage = `<:tick:1414277486367342602> Successfully deleted **${deletedCount}** messages, some messages could not be deleted due to being older than 14 days.`;
+      replyMessage = `<:tick:1415646570191261727> Successfully deleted **${deletedCount}** messages, some messages could not be deleted due to being older than 14 days.`;
     } else {
-      replyMessage = `<:tick:1414277486367342602> Successfully deleted **${deletedCount}** messages.`;
+      replyMessage = `<:tick:1415646570191261727> Successfully deleted **${deletedCount}** messages.`;
     }
 
     // send reply, then delete it after 3 seconds
@@ -101,12 +113,14 @@ module.exports = {
       const logEmbed = new EmbedBuilder()
         .setTitle(`Command Ran By ${interaction.member.displayName}`)
         .setDescription(
-          `**Moderator:** ${interaction.member.displayName}\n` +
-          `**Command:** \`/purge\`\n` +
-          `**Action:** Deleted ${deletedCount} message(s) ${user ? `from ${user.tag}.` : "from all."}\n` +
-          (failed ? `**Note:** Some messages were older than 14 days and could not be deleted.\n` : "") +
-          `**Channel:** <#${interaction.channelId}>\n` +
-          `**Time:** <t:${Math.floor(Date.now() / 1000)}:f>`
+          `**Admin:** ${interaction.member.displayName}\n` +
+            `**Command:** \`/purge\`\n` +
+            `**Action:** Deleted ${deletedCount} message(s) ${user ? `from ${user.tag}.` : "from all."}\n` +
+            (failed
+              ? `**Note:** Some messages were older than 14 days and could not be deleted.\n`
+              : "") +
+            `**Channel:** <#${interaction.channelId}>\n` +
+            `**Time:** <t:${Math.floor(Date.now() / 1000)}:f>`,
         )
         .setColor(16607015)
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))

@@ -9,13 +9,18 @@ module.exports = (client) => {
     }
   }
 
-  client.on("messageReactionAdd", async (reaction, user) => {
+  // Unified function for adding/removing roles
+  async function handleReaction(reaction, user, add) {
     if (user.bot) return;
+
+    // Fetch partials if needed
+    if (reaction.partial) await reaction.fetch();
+    if (reaction.message.partial) await reaction.message.fetch();
 
     const config = await getReactionConfig();
     if (!config) return;
-
     if (reaction.message.id !== config.id) return;
+
     const roleId = config.emojiRoleMap[reaction.emoji.name];
     if (!roleId) return;
 
@@ -23,31 +28,38 @@ module.exports = (client) => {
     const role = reaction.message.guild.roles.cache.get(roleId);
 
     try {
-      await guildMember.roles.add(roleId);
-      await user.send(`<:tick:1414277486367342602> Successfully added **${role.name}**!`).catch(() => {});
+      if (add) await guildMember.roles.add(roleId);
+      else await guildMember.roles.remove(roleId);
+
+      await user.send(
+        `<:tick:1415646570191261727> Successfully ${add ? "added" : "removed"} **${role.name}**!`
+      ).catch(() => {});
     } catch {
-      await user.send(`<:no:1414271943900659792> An error occurred while giving **${role.name}**. Please try again later or contact support.`).catch(() => {});
+      await user.send(
+        `<:no:1415646565623927007> An error occurred while ${add ? "adding" : "removing"} **${role.name}**.`
+      ).catch(() => {});
     }
+  }
+
+  client.on("messageReactionAdd", async (reaction, user) => {
+    handleReaction(reaction, user, true);
   });
 
   client.on("messageReactionRemove", async (reaction, user) => {
-    if (user.bot) return;
+    handleReaction(reaction, user, false);
+  });
 
+  // Fetch the reaction roles message on bot startup to cache it
+  client.on("clientReady", async () => {
     const config = await getReactionConfig();
-    if (!config) return;
-
-    if (reaction.message.id !== config.id) return;
-    const roleId = config.emojiRoleMap[reaction.emoji.name];
-    if (!roleId) return;
-
-    const guildMember = await reaction.message.guild.members.fetch(user.id);
-    const role = reaction.message.guild.roles.cache.get(roleId);
+    if (!config || !config.id) return;
 
     try {
-      await guildMember.roles.remove(roleId);
-      await user.send(`<:tick:1414277486367342602> Successfully removed **${role.name}**!`).catch(() => {});
-    } catch {
-      await user.send(`<:no:1414271943900659792> An error occurred while removing **${role.name}**. Please try again later or contact support.`).catch(() => {});
+      const channel = await client.channels.fetch("1353372278640869416"); // Reaction roles channel
+      await channel.messages.fetch(config.id); // Cache the message
+      console.log(`Reaction roles message ${config.id} cached successfully!`);
+    } catch (err) {
+      console.error("Failed to fetch/cache reaction roles message:", err);
     }
   });
 };

@@ -1,7 +1,4 @@
-const {
-  SlashCommandBuilder,
-  EmbedBuilder,
-} = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 
 const CHANNEL_RULES = "1353364350970105896"; // #rules channel
 const CHANNEL_LOGS = "1414272406742110208"; // Logs channel
@@ -16,7 +13,8 @@ module.exports = {
     // Role restriction
     if (!interaction.member.roles.cache.has(OWNERSHIP_ROLE_ID)) {
       return interaction.reply({
-        content: "<:no:1414271943900659792> You do not have permission to run this command.",
+        content:
+          "<:no:1415646565623927007> You do not have permission to run this command.",
         ephemeral: true,
       });
     }
@@ -25,7 +23,7 @@ module.exports = {
 
     if (!rulesChannel) {
       return interaction.reply({
-        content: "<:no:1414271943900659792> Could not find the #rules channel.",
+        content: "<:no:1415646565623927007> Could not find the #rules channel.",
         ephemeral: true,
       });
     }
@@ -36,7 +34,7 @@ module.exports = {
       .setDescription("📜 Server Rules and Guidelines:")
       .setColor(16607015)
       .setThumbnail(
-        "https://cdn.discordapp.com/icons/1353359637629636668/816006564eaa923481435409138c73de.webp?size=1024"
+        "https://cdn.discordapp.com/icons/1353359637629636668/816006564eaa923481435409138c73de.webp?size=1024",
       )
       .addFields(
         {
@@ -78,7 +76,7 @@ module.exports = {
           name: "Support",
           value:
             "> • If you need any assistance or support, please open a ticket at: [#open-a-ticket](https://ptb.discord.com/channels/1353359637629636668/1353669600335761418).\n> • Our team is ready to help you with any issues you might encounter!",
-        }
+        },
       )
       .setFooter({
         text: "We hope you have a nice time in the server!",
@@ -91,7 +89,8 @@ module.exports = {
 
     // confirm to the channel (normal message visible to everyone)
     await interaction.reply({
-      content: "<:tick:1414277486367342602> Rules embed has been sent to #rules.",
+      content:
+        "<:tick:1415646570191261727> Rules embed has been sent to #rules.",
     });
 
     // log embed
@@ -99,10 +98,10 @@ module.exports = {
       .setTitle(`Command Ran By ${interaction.member.displayName}`)
       .setDescription(
         `**Admin:** ${interaction.member.displayName}\n` +
-        `**Command:** \`/rules\`\n` +
-        `**Action:** Sent rules embed in #rules.\n` +
-        `**Channel:** <#${interaction.channelId}>\n` +
-        `**Time:** <t:${Math.floor(Date.now() / 1000)}:f>`
+          `**Command:** \`/rules\`\n` +
+          `**Action:** Sent rules embed in #rules.\n` +
+          `**Channel:** <#${interaction.channelId}>\n` +
+          `**Time:** <t:${Math.floor(Date.now() / 1000)}:f>`,
       )
       .setColor(16607015)
       .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
